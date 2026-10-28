@@ -32,7 +32,7 @@ wget -O /tmp/xray-xhttp-onekey.sh https://raw.githubusercontent.com/zbklk/apline
 | 编号 | 功能 |
 | --- | --- |
 | 1 | 一键安装 / 重新生成节点 |
-| 2 | 查看节点参数、VLESS 导入链接及可选二维码 |
+| 2 | 查看节点参数、VLESS 导入链接及二维码（缺少 `qrencode` 时自动安装） |
 | 3 | 启动服务 |
 | 4 | 停止服务 |
 | 5 | 重启服务 |
@@ -49,6 +49,7 @@ wget -O /tmp/xray-xhttp-onekey.sh https://raw.githubusercontent.com/zbklk/apline
 - 服务管理：systemd / OpenRC（未检测到支持的服务管理方式时拒绝安装）。
 - 自动下载官方 Xray-core 稳定版；通过 GitHub Release 提供的 SHA-256 摘要验证压缩包。
 - 自动生成 UUID、REALITY X25519 密钥、Short ID 和随机 XHTTP 路径。
+- **首次安装成功后自动尝试安装 `qrencode` 并立即显示终端二维码**；已有节点进入菜单 `2` 也会自动尝试补装。安装失败只提示，不影响 Xray 服务及 VLESS 导入链接。
 - 交互设置公网 IP/域名、TCP 端口和 REALITY 目标 SNI；默认端口 443，默认 SNI 为 `www.microsoft.com`。
 - 使用 `xray run -test` 验证配置；更新/变更失败时尽可能回滚原配置和二进制。
 - 在 UFW 或 firewalld 已启用的情况下尝试放行所选 **TCP** 端口；不自动更改云厂商安全组、iptables 或 nftables。
@@ -76,7 +77,8 @@ wget -O /tmp/xray-xhttp-onekey.sh https://raw.githubusercontent.com/zbklk/apline
 5. `/etc/xray-xhttp/node.json`、VLESS 链接属于敏感节点信息，请勿上传至 GitHub 或公开分享。
 6. 此脚本不会删除此前放行的防火墙端口，也不会管理其他服务。
 7. 建议在重要 VPS 上安装前制作快照，保持 SSH 会话可用。
-8. 完整测试状态：已通过脚本语法检查与本地模拟校验；未在真实 VPS 上验证所有发行版与连通性。
+8. 二维码在终端以 ANSI 字符显示；若终端不支持或软件源未提供 `qrencode`，可复制 VLESS 导入链接，节点本身不会受影响。
+9. 完整测试状态：已通过脚本语法检查与本地模拟校验；未在真实 VPS 上验证所有发行版与连通性。
 
 ## 六、官方参考
 
