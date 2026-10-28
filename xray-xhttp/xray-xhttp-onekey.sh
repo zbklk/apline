@@ -85,6 +85,27 @@ install_deps(){
   for cmd in curl jq unzip openssl sha256sum; do command -v "$cmd" >/dev/null 2>&1 || die "缺少依赖：$cmd"; done
 }
 
+install_qrencode(){
+  # 可选依赖：安装失败时只提示，不阻断 Xray 节点的安装/查看。
+  command -v qrencode >/dev/null 2>&1 && return 0
+  notice "自动安装 qrencode 二维码工具（可选）"
+  local installed=0
+  case "$PKG" in
+    apt)
+      export DEBIAN_FRONTEND=noninteractive
+      if apt-get update -qq && apt-get install -y -qq qrencode; then installed=1; fi ;;
+    apk) if apk add --no-cache qrencode; then installed=1; fi ;;
+    dnf) if dnf install -y qrencode; then installed=1; fi ;;
+    yum) if yum install -y qrencode; then installed=1; fi ;;
+  esac
+  if [[ "$installed" == 1 ]] && command -v qrencode >/dev/null 2>&1; then
+    green "qrencode 已安装，准备显示二维码。"
+    return 0
+  fi
+  yellow "qrencode 自动安装未成功（可能是软件源缺包或网络问题），不影响 Xray 节点。"
+  return 1
+}
+
 managed_check(){
   local file
   if [[ "$INIT" == systemd ]]; then file="$SERVICE_SYSTEMD"; else file="$SERVICE_OPENRC"; fi
@@ -367,11 +388,14 @@ show_node(){
   printf '\n服务状态：'
   if is_active; then green '运行中'; else red '未运行'; fi
   printf '\n导入链接：\n%s\n' "$(make_uri)"
-  if command -v qrencode >/dev/null 2>&1; then
-    printf '\n二维码：\n'
-    make_uri | qrencode -t ANSIUTF8 || true
+  # 首次安装完成或重新查看已有节点时，缺少工具就自动尝试安装。
+  if command -v qrencode >/dev/null 2>&1 || install_qrencode; then
+    printf '\n二维码（请勿公开分享）：\n'
+    if ! make_uri | qrencode -t ANSIUTF8; then
+      yellow "二维码生成失败，请复制上方 VLESS 导入链接。"
+    fi
   else
-    yellow "可选：安装 qrencode 后，再选择“查看节点”即可显示终端二维码。"
+    yellow "终端二维码暂不可用，请复制上方 VLESS 导入链接。"
   fi
 }
 
